@@ -1,13 +1,13 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import api.client.OrdersClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import model.Order;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 @RunWith(Parameterized.class)
@@ -22,6 +22,8 @@ public class CreateOrderParametrizedTest extends BaseTest {
     String deliveryDate;
     String comment;
     List<String> color;
+
+    OrdersClient ordersClient = new OrdersClient();
 
     public CreateOrderParametrizedTest(String firstName, String lastName, String address, String metroStation, String phone, int rentTime, String deliveryDate, String comment, List<String> color) {
         this.firstName = firstName;
@@ -46,24 +48,9 @@ public class CreateOrderParametrizedTest extends BaseTest {
     }
 
     @Test
-    public void createOrder() throws JsonProcessingException {
-        String json = "{\"firstName\":\"" + firstName
-                + "\",\"lastName\":\"" + lastName
-                + "\",\"address\":\"" + address
-                + "\",\"metroStation\":\"" + metroStation
-                + "\",\"phone\":\"" + phone
-                + "\",\"rentTime\":" + rentTime
-                + ",\"deliveryDate\":\"" + deliveryDate
-                + "\",\"comment\":\"" + comment
-                + "\",\"color\":" + new ObjectMapper().writeValueAsString(color) + "}";
-
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/orders");
+    @DisplayName("Create order")
+    public void createOrder() {
+        Response response = ordersClient.createOrder(new Order(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color));
         response.then().assertThat().statusCode(201);
         response.then().assertThat().body("track", notNullValue());
     }
